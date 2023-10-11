@@ -17,3 +17,19 @@ Use apt to install optimized python packages, as they come pre-built. Using pip 
 apt install python3-numpy python3-matplotlib
 pip install adafruit_mlx90640
 ```
+
+Setup the chaleur service so that it runs on startup:
+
+```sh
+sudo cp chaleur.service /lib/systemd/system/.
+sudo chmod 644 /lib/systemd/system/chaleur.service
+sudo systemctl enable chaleur.service
+reboot
+```
+
+Check that it's running:
+
+```sh
+systemctl status chaleur
+journalctl -u chaleur.service -f
+```

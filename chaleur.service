@@ -1,0 +1,10 @@
+[Unit]
+Description=Chaleur Service
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/home/paulo/chaleur/start.sh
+
+[Install]
+WantedBy=multi-user.target
