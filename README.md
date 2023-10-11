@@ -15,7 +15,7 @@ Use apt to install optimized python packages, as they come pre-built. Using pip 
 
 ```sh
 apt install python3-numpy python3-matplotlib
-pip install adafruit_mlx90640
+pip install adafruit_mlx90640 adafruit-circuitpython-tca9548a
 ```
 
 Setup the chaleur service so that it runs on startup:

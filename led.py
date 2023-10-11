@@ -3,17 +3,19 @@ import neopixel
 import time
 import math
 import colors
+import sys
 
-nb_leds = 720
+nb_leds = int(sys.argv[1])
+
 pixels = neopixel.NeoPixel(board.D18, nb_leds, auto_write=False)
 
-cold = [0,0,50]
-mid = [50,15,0]
-hot = [255,5,0]
-
-for i in range(nb_leds):
-	pixels[i] = colors.color_ramp(i/nb_leds, [
-		[0,0,50],
-		[50,15,0],
-		[255,5,0],
-	])
+while True:
+	for i in range(nb_leds):
+		pixels[i] = (1,1,1)
+	pixels.show()
+	time.sleep(1)
+	for i in range(nb_leds):
+		pixels[i] = (2,2,2)
+	pixels.show()
+	time.sleep(1)
+	

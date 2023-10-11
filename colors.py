@@ -1,3 +1,5 @@
+import math
+
 def mix(t, a, b):
 	return [a + t * (b-a) for (a,b) in zip(a,b)]
 

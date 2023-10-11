@@ -1,51 +1,70 @@
-import time
-import busio
+import adafruit_extended_bus
 import adafruit_mlx90640
 import board
-import neopixel
-import math
+import busio
 import colors
+import math
+import neopixel
+import time
+import sys
 
-# leds init
-nb_leds = 363
+t_cold = 24
+t_hot = 28
+ramp = [
+	[0,0,5],
+	[0,5,20],
+	[0,20,50],
+	[255,0,0]
+]
+
+def mix(t, a, b):
+	return [a + t * (b-a) for (a,b) in zip(a,b)]
+
+def color_ramp(t, ramp):
+	if (t<=0):
+		return ramp[0]
+	if (t>=1):
+		return ramp[-1]
+	n = len(ramp) - 1
+	i = math.floor(t * n)
+	u = (t * n) % 1
+	return mix(u, ramp[i], ramp[i+1])
+
+nb_leds = 720
 pixels = neopixel.NeoPixel(board.D18, nb_leds, auto_write=False)
 
-# cam init
-i2c = busio.I2C(board.SCL, board.SDA)
+i2c = adafruit_extended_bus.ExtendedI2C(3)
 mlx = adafruit_mlx90640.MLX90640(i2c)
 mlx.refresh_rate = adafruit_mlx90640.RefreshRate.REFRESH_8_HZ
+frame = [0] * 768
 frame = [0] * 768
 w = 32
 h = 24
 
-# parameters
-ramp = [
-	[0,0,50],
-	[50,15,0],
-	[255,5,0],
-]
-
 while True:
-	# reading cam
 	try:
+
 		mlx.getFrame(frame)
+
+		t_line = [sum([frame[w*y+x] for y in range(h)])/h for x in range(w)]
+		t_min = min(t_line)
+		t_max = max(t_line)
+		# t_norms = [(t - t_min) / (t_max + 0.001 - t_min) for t in t_line]
+		t_norms = [(t - t_cold) / (t_hot + 0.001 - t_cold) for t in t_line]
+		
+		char_line = ["X" if t > (t_min+t_max)/2 else "." for t in t_line]
+		print(
+			"".join(char_line),
+			math.floor(min(t_line)),
+			math.floor(max(t_line))
+		)
+		 
+		for i in range(nb_leds):
+			ti = (w * i) // nb_leds
+			t = t_norms[ti]
+			pixels[i] = color_ramp(t, ramp)
+		pixels.show()
+			
 	except Exception as e:
 		print("ignoring", e)
 		continue
-	
-	# painting leds
-	t_line = [sum([frame[w*y+x] for y in range(h)])/h for x in range(w)]
-	t_min = min(t_line)
-	t_max = min(t_line) + 0.01
-	for pi in range(nb_leds):
-		ti = pi*w//nb_leds
-		tn = (t_line[ti] - t_min) / (t_max - t_min)
-		pixels[pi] = colors.color_ramp(tn, ramp)
-
-	# debug
-	char_line = ["X" if t > t_mid else "." for t in t_line]
-	print(
-		"".join(char_line),
-		math.floor(min(t_line)),
-		math.floor(max(t_line))
-	)
