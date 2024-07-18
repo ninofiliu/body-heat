@@ -8,6 +8,7 @@ import neopixel
 import time
 import sys
 
+debug = True
 t_cold = 24
 t_hot = 28
 ramp = [
@@ -52,12 +53,13 @@ while True:
 		# t_norms = [(t - t_min) / (t_max + 0.001 - t_min) for t in t_line]
 		t_norms = [(t - t_cold) / (t_hot + 0.001 - t_cold) for t in t_line]
 		
-		char_line = ["X" if t > (t_min+t_max)/2 else "." for t in t_line]
-		print(
-			"".join(char_line),
-			math.floor(min(t_line)),
-			math.floor(max(t_line))
-		)
+		if debug:
+			char_line = ["X" if t > (t_min+t_max)/2 else "." for t in t_line]
+			print(
+				"".join(char_line),
+				math.floor(min(t_line)),
+				math.floor(max(t_line))
+			)
 		 
 		for i in range(nb_leds):
 			ti = (w * i) // nb_leds
