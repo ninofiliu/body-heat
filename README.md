@@ -1,4 +1,4 @@
-# Chaleur
+# Body heat
 
 An interactive sculpture by [Nino Filiu](https://instagram.com/nino.filiu/) and [Paul Créange](https://www.instagram.com/paulcreange/)
 
