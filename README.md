@@ -23,9 +23,9 @@ pip install adafruit_mlx90640 adafruit-circuitpython-tca9548a
 Setup the chaleur service so that it runs on startup:
 
 ```sh
-sudo cp chaleur.service /lib/systemd/system/.
-sudo chmod 644 /lib/systemd/system/chaleur.service
-sudo systemctl enable chaleur.service
+sudo cp body-heat.service /lib/systemd/system/.
+sudo chmod 644 /lib/systemd/system/body-heat.service
+sudo systemctl enable body-heat.service
 ```
 
 then reboot
