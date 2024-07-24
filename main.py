@@ -54,7 +54,8 @@ while True:
 	try:
 		mlx.getFrame(frame)
 
-		t_line = [sum([frame[w*y+x] for y in range(h)])/h for x in range(w)]
+		# t_line = [sum([frame[w*y+x] for y in range(h)])/h for x in range(w)]
+		t_line = [max([frame[w*y+x] for y in range(h)]) for x in range(w)]
 		t_max = max(t_line)
 		t_min = min(t_line)
 		t_smooth_min = t_smooth_min + 0.05 * (t_min-t_smooth_min)
@@ -68,7 +69,7 @@ while True:
 				"".join(char_line),
 				math.floor(t_smooth_min),
 				math.floor(t_min),
-				math.floor(t_max)
+				math.floor(t_max),
 			)
 		 
 		for i in range(nb_leds):
