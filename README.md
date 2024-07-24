@@ -2,13 +2,19 @@
 
 An interactive sculpture by [Nino Filiu](https://instagram.com/nino.filiu/) and [Paul Créange](https://www.instagram.com/paulcreange/)
 
-Add these to `/boot/config.txt` so as to run I2C over GPIO
+Add these to `/boot/config.txt` so as to run I2C over GPIO (not needed for single setup)
 
 ```txt
 dtoverlay=i2c-gpio,bus=6,i2c_gpio_delay_us=1,i2c_gpio_sda=6,i2c_gpio_scl=13
 dtoverlay=i2c-gpio,bus=5,i2c_gpio_delay_us=1,i2c_gpio_sda=8,i2c_gpio_scl=5
 dtoverlay=i2c-gpio,bus=4,i2c_gpio_delay_us=1,i2c_gpio_sda=10,i2c_gpio_scl=9
 dtoverlay=i2c-gpio,bus=3,i2c_gpio_delay_us=1,i2c_gpio_sda=27,i2c_gpio_scl=22
+```
+
+and add this to augment baud rate
+
+```txt
+dtparam=i2c_arm_baudrate=800000
 ```
 
 then reboot
