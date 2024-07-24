@@ -45,17 +45,17 @@ journalctl -u chaleur.service -f
 
 # Pinout
 
-pi.gnd cam.gnd(black)
-pi.5v cam.vin(red)
-pi.gpio02 cam.sda(blue)
-pi.gpio04 cam.scl(yellow)
+- pi.gnd cam.gnd(black)
+- pi.5v cam.vin(red)
+- pi.gpio02 cam.sda(blue)
+- pi.gpio04 cam.scl(yellow)
 
-pi.gnd pixel.gnd
-pi.gpio18 pixel.din(green,middle)
+- pi.gnd pixel.gnd
+- pi.gpio18 pixel.din(green,middle)
 
-supply.l power.l(brown)
-supply.n power.n(yellow)
-supply.gnd power.gnd(yellow/green)
-supply.v- pixel.gnd(white)
-supply.v+ pixel.vin(red)
-supply.v- diod supply.v+
+- supply.l power.l(brown)
+- supply.n power.n(yellow)
+- supply.gnd power.gnd(yellow/green)
+- supply.v- pixel.gnd(white)
+- supply.v+ pixel.vin(red)
+- supply.v- diod supply.v+
