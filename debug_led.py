@@ -11,8 +11,8 @@ while True:
 	for i in range(nb_leds):
 	    pixels[i] = (10,0,0)
 	pixels.show()
-	time.sleep(1)
+	time.sleep(1/24)
 	for i in range(nb_leds):
 	    pixels[i] = (0,10,0)
 	pixels.show()
-	time.sleep(1)
+	time.sleep(1/24)

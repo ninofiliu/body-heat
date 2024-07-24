@@ -12,10 +12,10 @@ debug = True
 t_cold = 24
 t_hot = 28
 ramp = [
-	[0,0,5],
-	[0,5,20],
-	[0,20,50],
-	[255,0,0]
+	(0,0,10),
+	(0,10,20),
+	(60,60,0),
+	(255,0,0),
 ]
 
 # utils
@@ -55,10 +55,10 @@ while True:
 		mlx.getFrame(frame)
 
 		# t_line = [sum([frame[w*y+x] for y in range(h)])/h for x in range(w)]
-		t_line = [max([frame[w*y+x] for y in range(h)]) for x in range(w)]
+		t_line = [max([frame[w*y+x] for y in range(h)]) for x in reversed(range(w))]
 		t_max = max(t_line)
 		t_min = min(t_line)
-		t_smooth_min = t_smooth_min + 0.05 * (t_min-t_smooth_min)
+		t_smooth_min = t_smooth_min + 0.1 * (t_min-t_smooth_min)
 		t_cold = t_smooth_min
 		t_hot = 34
 		t_norms = [(t - t_cold) / (t_hot - t_cold) for t in t_line]
