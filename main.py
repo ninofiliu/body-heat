@@ -40,10 +40,10 @@ nb_leds = 187
 pixels = neopixel.NeoPixel(board.D18, nb_leds, auto_write=False)
 
 # setup cam
-i2c = busio.I2C(board.SCL, board.SDA, frequency=800000)
+i2c = busio.I2C(board.SCL, board.SDA)
 mlx = adafruit_mlx90640.MLX90640(i2c)
 print("MLX addr detected on I2C", [hex(i) for i in mlx.serial_number])
-mlx.refresh_rate = adafruit_mlx90640.RefreshRate.REFRESH_2_HZ
+mlx.refresh_rate = adafruit_mlx90640.RefreshRate.REFRESH_16_HZ
 frame = [0] * 768
 w = 32
 h = 24
@@ -54,13 +54,17 @@ while True:
 	try:
 		mlx.getFrame(frame)
 
-		# t_line = [sum([frame[w*y+x] for y in range(h)])/h for x in range(w)]
-		t_line = [max([frame[w*y+x] for y in range(h)]) for x in reversed(range(w))]
+
+		# avg strategy
+		t_line = [sum([frame[w*y+x] for y in range(h)])/h for x in reversed(range(w))]
+		# max strategy
+		# t_line = [max([frame[w*y+x] for y in range(h)]) for x in reversed(range(w))]
+		
 		t_max = max(t_line)
 		t_min = min(t_line)
 		t_smooth_min = t_smooth_min + 0.1 * (t_min-t_smooth_min)
-		t_cold = t_smooth_min
-		t_hot = 34
+		t_cold = t_min
+		t_hot = max(t_max,t_min+2)
 		t_norms = [(t - t_cold) / (t_hot - t_cold) for t in t_line]
 		
 		if debug:
