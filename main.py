@@ -19,8 +19,11 @@ ramp = [
 ]
 
 # utils
-def mix(t, a, b):
-	return [a + t * (b-a) for (a,b) in zip(a,b)]
+def lerp(t,a,b):
+	return a + t * (b-a)
+	
+def mix(t, aa, bb):
+	return [lerp(t,a,b) for (a,b) in zip(aa,bb)]
 
 def color_ramp(t, ramp):
 	if (t<=0):
@@ -44,6 +47,7 @@ mlx.refresh_rate = adafruit_mlx90640.RefreshRate.REFRESH_2_HZ
 frame = [0] * 768
 w = 32
 h = 24
+t_smooth_min = 20
 
 # run
 while True:
@@ -51,23 +55,29 @@ while True:
 		mlx.getFrame(frame)
 
 		t_line = [sum([frame[w*y+x] for y in range(h)])/h for x in range(w)]
-		t_min = min(t_line)
 		t_max = max(t_line)
-		t_cold = t_min
-		t_hot = t_max + 0.001
+		t_min = min(t_line)
+		t_smooth_min = t_smooth_min + 0.05 * (t_min-t_smooth_min)
+		t_cold = t_smooth_min
+		t_hot = 34
 		t_norms = [(t - t_cold) / (t_hot - t_cold) for t in t_line]
 		
 		if debug:
 			char_line = ["X" if t > (t_min+t_max)/2 else "." for t in t_line]
 			print(
 				"".join(char_line),
-				math.floor(min(t_line)),
-				math.floor(max(t_line))
+				math.floor(t_smooth_min),
+				math.floor(t_min),
+				math.floor(t_max)
 			)
 		 
 		for i in range(nb_leds):
-			ti = (w * i) // nb_leds
-			t = t_norms[ti]
+			ti = i * w / nb_leds
+			ti_floor = math.floor(ti)
+			ti_fract = ti % 1
+			t_down = t_norms[ti_floor]
+			t_up = t_norms[min(ti_floor+1,len(t_norms)-1)]
+			t = lerp(ti_fract, t_down, t_up)
 			pixels[i] = color_ramp(t, ramp)
 		pixels.show()
 			
