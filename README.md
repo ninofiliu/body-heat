@@ -44,7 +44,7 @@ journalctl -u chaleur.service -f
 ```
 
 # Pinout
-
+        
 - pi.gnd cam.gnd(black)
 - pi.5v cam.vin(red)
 - pi.gpio02 cam.sda(blue)
@@ -59,3 +59,31 @@ journalctl -u chaleur.service -f
 - supply.v- pixel.gnd(white)
 - supply.v+ pixel.vin(red)
 - supply.v- diod supply.v+
+
+# SSH
+
+username: pi
+pwd: pi
+
+from pi:
+
+```sh
+# ssh setup
+ssh-keygen -t ed25519 -C "filiunino@gmail.com"
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+```
+
+from computer:
+
+```sh
+# list all addresses where the pi could be configured
+arp -a
+```
+
+setup from ssh'd pi:
+
+```sh
+# install deps
+sudo pip3 install --break-system-packages Adafruit-Blinka Adafruit-Blinka-Raspberry-Pi5-Neopixel
+```

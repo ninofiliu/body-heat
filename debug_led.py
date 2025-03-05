@@ -5,7 +5,7 @@ import math
 import colors
 import sys
 
-nb_leds = int(sys.argv[1]) # 187
+nb_leds = 10
 pixels = neopixel.NeoPixel(board.D18, nb_leds, auto_write=False)
 while True:
 	for i in range(nb_leds):
