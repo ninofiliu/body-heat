@@ -26,6 +26,10 @@ apt install python3-numpy python3-matplotlib
 pip install adafruit_mlx90640 adafruit-circuitpython-tca9548a
 ```
 
+```sh
+pip install --break-system-packages adafruit-circuitpython-mlx90640
+```
+
 Setup the chaleur service so that it runs on startup:
 
 ```sh
@@ -39,8 +43,8 @@ then reboot
 Check that it's running:
 
 ```sh
-systemctl status chaleur
-journalctl -u chaleur.service -f
+systemctl status body-heat
+journalctl -u body-heat.service -f
 ```
 
 # Pinout

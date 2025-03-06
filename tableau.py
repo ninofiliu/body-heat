@@ -6,11 +6,17 @@ import json
 
 
 heat_min = 22
-heat_max = 33
+heat_max = 28
 ramp = [
-    (0.0, 0.66, 1, 0.2),
-    (0.5, 0.33, 1, 0.2),
-    (1, 0, 1, 0.2),
+    # (0.0, 0.66, 1, 0.2),
+    # (0.5, 0.33, 1, 0.2),
+    # (1, 0, 1, 1),
+    # red gradient
+    # (0, 0, 1, 0),
+    # (1, 0, 1, 1),
+    (0, 0, 1, 3 / 256),
+    (0.5, 0, 1, 10 / 256),
+    (1, 0, 1, 128 / 256),
 ]
 
 
@@ -35,13 +41,6 @@ cam_w = 32
 cam_h = 24
 
 
-# col_mat = [
-#     [f"{x*256//w:02X}{y*256//h:02X}{'FF' if x==0 else '00'}" for x in range(w)]
-#     for y in range(h)
-# ]
-# col_mat = [[f"{'FF' if x %2==0 else '00'}0000" for x in range(w)] for y in range(h)]
-
-
 def paint(col_mat: list[list[str]]) -> None:
     for x, y in to_pop[::-1]:
         col_mat[y].pop(x)
@@ -49,11 +48,12 @@ def paint(col_mat: list[list[str]]) -> None:
     col_arr = [col for line in col_rev for col in line]
     for chunk_start in range(0, nb_leds, chunk_size):
         col_chunk = col_arr[chunk_start : chunk_start + chunk_size]
-        requests.post(
+        response = requests.post(
             "http://4.3.2.1/json",
             headers={"Content-Type": "application/json"},
             data=json.dumps({"bri": 255, "seg": {"i": [chunk_start] + col_chunk}}),
         )
+        print(response.text)
 
 
 def resize(image, w2, h2):
@@ -196,8 +196,18 @@ i2c = busio.I2C(board.SCL, board.SDA)
 mlx = adafruit_mlx90640.MLX90640(i2c)
 print("MLX addr detected on I2C", [hex(i) for i in mlx.serial_number])
 mlx.refresh_rate = adafruit_mlx90640.RefreshRate.REFRESH_16_HZ
-
 frame = [0] * 768
+
+# wifi setup (try until connexion ok)
+while True:
+    print("Attempting HTTP connection to WLED on ESP32...")
+    try:
+        requests.get("http://4.3.2.1/json")
+        break
+    except:
+        continue
+print("HTTP connection successful")
+
 while True:
     try:
         mlx.getFrame(frame)

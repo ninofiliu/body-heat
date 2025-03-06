@@ -4,7 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=idle
-ExecStart=/home/paulo/body-heat/start.sh
+ExecStart=/home/pi/body-heat/start.sh
 
 [Install]
 WantedBy=multi-user.target
