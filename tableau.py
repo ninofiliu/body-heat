@@ -1,9 +1,17 @@
-import time
 import board
 import busio
 import adafruit_mlx90640
 import requests
 import json
+
+
+heat_min = 22
+heat_max = 33
+ramp = [
+    (0.0, 0.66, 1, 0.2),
+    (0.5, 0.33, 1, 0.2),
+    (1, 0, 1, 0.2),
+]
 
 
 screen_w = 43
@@ -90,13 +98,97 @@ def resize(image, w2, h2):
     return resized_image
 
 
+def color_ramp(
+    position: float, ramp: list[tuple[float, float, float, float]]
+) -> tuple[float, float, float]:
+    """
+    Interpolates an HSV color from a color ramp based on the given position.
+
+    :param position: A float between 0 and 1 representing the position on the color ramp.
+    :param ramp: A list of tuples in the format (position, hue, saturation, value).
+    :return: A tuple (hue, saturation, value) representing the interpolated color.
+    """
+    # Ensure the ramp is sorted by position
+    ramp = sorted(ramp, key=lambda x: x[0])
+
+    # Handle edge cases where position is outside the ramp
+    if position <= ramp[0][0]:
+        return ramp[0][1], ramp[0][2], ramp[0][3]
+    if position >= ramp[-1][0]:
+        return ramp[-1][1], ramp[-1][2], ramp[-1][3]
+
+    # Find the two nearest points in the ramp
+    for i in range(len(ramp) - 1):
+        if ramp[i][0] <= position <= ramp[i + 1][0]:
+            pos1, h1, s1, v1 = ramp[i]
+            pos2, h2, s2, v2 = ramp[i + 1]
+            break
+
+    # Calculate the interpolation factor
+    t = (position - pos1) / (pos2 - pos1)
+
+    # Interpolate each component
+    hue = h1 + t * (h2 - h1)
+    saturation = s1 + t * (s2 - s1)
+    value = v1 + t * (v2 - v1)
+
+    return hue, saturation, value
+
+
+def hsv_to_rgb(hsv: tuple[float, float, float]) -> tuple[int, int, int]:
+    """
+    Converts an HSV color to an RGB color.
+
+    :param hsv: A tuple (hue, saturation, value) where:
+        - hue is a float in the range [0, 1]
+        - saturation is a float in the range [0, 1]
+        - value is a float in the range [0, 1]
+    :return: A tuple (red, green, blue) where each component is in the range [0, 255].
+    """
+    h, s, v = hsv
+    if s == 0:
+        # Achromatic (gray)
+        r = g = b = int(v * 255)
+        return r, g, b
+
+    # Sector 0 to 5
+    h *= 6.0
+    i = int(h)
+    f = h - i  # Fractional part of h
+    p = v * (1.0 - s)
+    q = v * (1.0 - s * f)
+    t = v * (1.0 - s * (1.0 - f))
+
+    if i == 0:
+        r, g, b = v, t, p
+    elif i == 1:
+        r, g, b = q, v, p
+    elif i == 2:
+        r, g, b = p, v, t
+    elif i == 3:
+        r, g, b = p, q, v
+    elif i == 4:
+        r, g, b = t, p, v
+    elif i == 5:
+        r, g, b = v, p, q
+    else:
+        r, g, b = 0, 0, 0
+        # raise ValueError("Hue value out of range")
+
+    # Convert to 0-255 range
+    r = int(r * 255)
+    g = int(g * 255)
+    b = int(b * 255)
+
+    return r, g, b
+
+
 def heat_to_color(heat: float) -> str:
-    heat_min = 22
-    heat_max = 33
-    heat_mapped = 256 * (heat - heat_min) / (heat_max - heat_min)
-    heat_clamped = int(min(255, max(0, heat_mapped)))
-    col = f"{heat_clamped:02X}0000"
-    return col
+    heat_normalized = min(1, max(0, (heat - heat_min) / (heat_max - heat_min)))
+
+    hsv = color_ramp(heat_normalized, ramp)
+    r, g, b = hsv_to_rgb(hsv)
+    return f"{r:02X}{g:02X}{b:02X}"
 
 
 # cam setup
@@ -109,13 +201,15 @@ frame = [0] * 768
 while True:
     try:
         mlx.getFrame(frame)
+        cam_mat = [[frame[cam_w * y + x] for y in range(cam_h)] for x in range(cam_w)][
+            ::-1
+        ]
+        cam_mat_resized = resize(cam_mat, screen_w, screen_h)
+        col_mat = [
+            [heat_to_color(cam_mat_resized[y][x]) for x in range(screen_w)]
+            for y in range(screen_h)
+        ]
+        paint(col_mat)
     except Exception as e:
         print("Ignoring", e)
         continue
-    cam_mat = [[frame[cam_w * y + x] for y in range(cam_h)] for x in range(cam_w)][::-1]
-    cam_mat_resized = resize(cam_mat, screen_w, screen_h)
-    col_mat = [
-        [heat_to_color(cam_mat_resized[y][x]) for x in range(screen_w)]
-        for y in range(screen_h)
-    ]
-    paint(col_mat)
