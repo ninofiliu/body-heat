@@ -10,9 +10,9 @@ mlx.refresh_rate = adafruit_mlx90640.RefreshRate.REFRESH_16_HZ
 
 frame = [0] * 768
 while True:
-	try:
-		mlx.getFrame(frame)
-	except Exception as e:
-		print("Ignoring", e)
-		continue
-	print(min(frame), max(frame))
+    try:
+        mlx.getFrame(frame)
+    except Exception as e:
+        print("Ignoring", e)
+        continue
+    print(min(frame), max(frame))
