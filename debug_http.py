@@ -1,24 +1,5 @@
 import requests
 import json
-import random
-
-DEBUG = True
-
-
-def get_index(x: int, y: int) -> int:
-    i = 43 * y + x
-    return i
-
-
-def update_range(start: int, colors: list[str]) -> None:
-    response = requests.post(
-        "http://4.3.2.1/json",
-        headers={"Content-Type": "application/json"},
-        data=json.dumps({"bri": 255, "seg": {"i": [start] + colors}}),
-    )
-    if DEBUG:
-        print(response.status_code, response.text)
-
 
 w = 43
 h = 16
@@ -43,16 +24,15 @@ to_pop = [
 # ]
 # col_mat = [[f"{'FF' if x %2==0 else '00'}0000" for x in range(w)] for y in range(h)]
 
-for yy in range(h):
-    col_mat = [[f"{'FF' if yy==y else '00'}0000" for x in range(w)] for y in range(h)]
 
+def paint(col_mat: list[list[str]]) -> None:
     for x, y in to_pop[::-1]:
         col_mat[y].pop(x)
     col_rev = [col_mat[i] if i % 2 == 0 else col_mat[i][::-1] for i in range(h)]
     col_arr = [col for line in col_rev for col in line]
     for chunk_start in range(0, nb_leds, chunk_size):
         col_chunk = col_arr[chunk_start : chunk_start + chunk_size]
-        response = requests.post(
+        requests.post(
             "http://4.3.2.1/json",
             headers={"Content-Type": "application/json"},
             data=json.dumps({"bri": 255, "seg": {"i": [chunk_start] + col_chunk}}),
