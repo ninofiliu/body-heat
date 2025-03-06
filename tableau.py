@@ -112,7 +112,7 @@ while True:
     except Exception as e:
         print("Ignoring", e)
         continue
-    cam_mat = [[frame[cam_w * y + x] for x in range(cam_w)] for y in range(cam_h)]
+    cam_mat = [[frame[cam_w * y + x] for y in range(cam_h)] for x in range(cam_w)][::-1]
     cam_mat_resized = resize(cam_mat, screen_w, screen_h)
     col_mat = [
         [heat_to_color(cam_mat_resized[y][x]) for x in range(screen_w)]
