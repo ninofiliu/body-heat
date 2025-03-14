@@ -7,7 +7,7 @@ SERIAL_PORT = "/dev/ttyUSB0"  # Replace with your ESP32's serial port
 BAUDRATE = 460800  # Match this with WLED's baud rate
 
 
-def create_tpm2_packet(data):
+def create_tpm2_packet(data: list[tuple[int, int, int]]):
     """
     Create a TPM2 packet from the given data.
     :param data: List of RGB values for each LED.
@@ -31,12 +31,13 @@ def create_tpm2_packet(data):
     return packet
 
 
-with serial.Serial(SERIAL_PORT, BAUDRATE) as ser:
-    for i in range(NUM_LEDS):
-        t0 = time.time()
-        tpm2_packet = create_tpm2_packet(
-            [(1, 1, 1) if j < i else (10, 10, 10) for j in range(NUM_LEDS)]
-        )
-        ser.write(tpm2_packet)
-        tf = time.time() - t0
-        print(tf, 1 / tf)
+if __name__ == "__main__":
+    with serial.Serial(SERIAL_PORT, BAUDRATE) as ser:
+        for i in range(NUM_LEDS):
+            t0 = time.time()
+            tpm2_packet = create_tpm2_packet(
+                [(1, 1, 1) if j < i else (10, 10, 10) for j in range(NUM_LEDS)]
+            )
+            ser.write(tpm2_packet)
+            tf = time.time() - t0
+            print(tf, 1 / tf)

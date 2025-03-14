@@ -1,9 +1,16 @@
+import serial
 import time
 import board
 import busio
 import adafruit_mlx90640
 import requests
 import json
+import tpm2
+
+
+NUM_LEDS = 678  # Number of LEDs to control
+SERIAL_PORT = "/dev/ttyUSB0"  # Replace with your ESP32's serial port
+BAUDRATE = 460800  # Match this with WLED's baud rate
 
 
 heat_min = 25
@@ -22,7 +29,7 @@ ramp = [
 
 screen_w = 43
 screen_h = 16
-chunk_size = 256
+http_chunk_size = 256
 nb_leds = 678
 to_pop = [
     (0, 0),
@@ -44,19 +51,28 @@ cam_h = 24
 wled_ip = "172.20.10.2"  # can sometimes be 4.3.2.1
 
 
-def paint(col_mat: list[list[str]]) -> None:
+def paint_http(col_mat: list[list[str]]) -> None:
     for x, y in to_pop[::-1]:
         col_mat[y].pop(x)
     col_rev = [col_mat[i] if i % 2 == 0 else col_mat[i][::-1] for i in range(screen_h)]
     col_arr = [col for line in col_rev for col in line]
-    for chunk_start in range(0, nb_leds, chunk_size):
-        col_chunk = col_arr[chunk_start : chunk_start + chunk_size]
+    for chunk_start in range(0, nb_leds, http_chunk_size):
+        col_chunk = col_arr[chunk_start : chunk_start + http_chunk_size]
         response = requests.post(
             f"http://{wled_ip}/json",
             headers={"Content-Type": "application/json"},
             data=json.dumps({"bri": 255, "seg": {"i": [chunk_start] + col_chunk}}),
         )
         print(response.text)
+
+
+def paint_tpm2(col_mat: list[list[tuple[int, int, int]]], ser: serial.Serial):
+    for x, y in to_pop[::-1]:
+        col_mat[y].pop(x)
+    col_rev = [col_mat[i] if i % 2 == 0 else col_mat[i][::-1] for i in range(screen_h)]
+    col_arr = [col for line in col_rev for col in line]
+    pkt = tpm2.create_tpm2_packet(col_arr)
+    ser.write(pkt)
 
 
 def resize(image, w2, h2):
@@ -186,11 +202,14 @@ def hsv_to_rgb(hsv: tuple[float, float, float]) -> tuple[int, int, int]:
     return r, g, b
 
 
-def heat_to_color(heat: float) -> str:
-    heat_normalized = min(1, max(0, (heat - heat_min) / (heat_max - heat_min)))
+def heat_to_color_rgb(heat: float) -> tuple[int, int, int]:
+    heat_n = min(1, max(0, (heat - heat_min) / (heat_max - heat_min)))
+    hsv = color_ramp(heat_n, ramp)
+    return hsv_to_rgb(hsv)
 
-    hsv = color_ramp(heat_normalized, ramp)
-    r, g, b = hsv_to_rgb(hsv)
+
+def heat_to_color_str(heat: float) -> str:
+    r, g, b = heat_to_color_rgb(heat)
     return f"{r:02X}{g:02X}{b:02X}"
 
 
@@ -201,18 +220,25 @@ print("MLX addr detected on I2C", [hex(i) for i in mlx.serial_number])
 mlx.refresh_rate = adafruit_mlx90640.RefreshRate.REFRESH_16_HZ
 frame = [0] * 768
 
-while True:
-    try:
-        mlx.getFrame(frame)
-        cam_mat = [[frame[cam_w * y + x] for y in range(cam_h)] for x in range(cam_w)][
-            ::-1
-        ]
-        cam_mat_resized = resize(cam_mat, screen_w, screen_h)
-        col_mat = [
-            [heat_to_color(cam_mat_resized[y][x]) for x in range(screen_w)]
-            for y in range(screen_h)
-        ]
-        paint(col_mat)
-    except Exception as e:
-        print("Ignoring", e)
-        continue
+
+with serial.Serial(SERIAL_PORT, BAUDRATE) as ser:
+    while True:
+        try:
+            t0 = time.time()
+
+            mlx.getFrame(frame)
+            cam_mat = [
+                [frame[cam_w * y + x] for y in range(cam_h)] for x in range(cam_w)
+            ][::-1]
+            cam_mat_resized = resize(cam_mat, screen_w, screen_h)
+            col_mat = [
+                [heat_to_color_rgb(cam_mat_resized[y][x]) for x in range(screen_w)]
+                for y in range(screen_h)
+            ]
+            paint_tpm2(col_mat, ser)
+
+            tf = time.time() - t0
+            print(f"{1/tf:.2f}fps ({int(1000*tf)}ms)")
+        except Exception as e:
+            print("Ignoring", e)
+            continue
