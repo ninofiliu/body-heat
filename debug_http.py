@@ -1,5 +1,6 @@
 import requests
 import json
+import time
 
 w = 43
 h = 16
@@ -18,12 +19,6 @@ to_pop = [
     (42, 15),
 ]
 
-# col_mat = [
-#     [f"{x*256//w:02X}{y*256//h:02X}{'FF' if x==0 else '00'}" for x in range(w)]
-#     for y in range(h)
-# ]
-# col_mat = [[f"{'FF' if x %2==0 else '00'}0000" for x in range(w)] for y in range(h)]
-
 
 def paint(col_mat: list[list[str]]) -> None:
     for x, y in to_pop[::-1]:
@@ -33,7 +28,17 @@ def paint(col_mat: list[list[str]]) -> None:
     for chunk_start in range(0, nb_leds, chunk_size):
         col_chunk = col_arr[chunk_start : chunk_start + chunk_size]
         requests.post(
-            "http://4.3.2.1/json",
+            "http://172.20.10.2/json",
             headers={"Content-Type": "application/json"},
             data=json.dumps({"bri": 255, "seg": {"i": [chunk_start] + col_chunk}}),
         )
+
+
+i = 0
+while True:
+    t0 = time.time()
+    col_mat = [[f"{'10' if x == i else '00'}0000" for x in range(w)] for y in range(h)]
+    paint(col_mat)
+    i = (i + 1) % w
+    t1 = time.time()
+    print(f"{(t1-t0)*1000:.0f}ms ({1/(t1-t0):.2f}fps)")

@@ -1,3 +1,4 @@
+import time
 import board
 import busio
 import adafruit_mlx90640
@@ -5,18 +6,17 @@ import requests
 import json
 
 
-heat_min = 22
-heat_max = 28
+heat_min = 25
+heat_max = 33
 ramp = [
-    # (0.0, 0.66, 1, 0.2),
-    # (0.5, 0.33, 1, 0.2),
-    # (1, 0, 1, 1),
+    # heatmap
+    # (0.0, 0.66, 1, 5 / 256),
+    # (0.5, 0.33, 1, 10 / 256),
+    # (1, 0, 1, 128 / 256),
     # red gradient
-    # (0, 0, 1, 0),
-    # (1, 0, 1, 1),
-    (0, 0, 1, 3 / 256),
-    (0.5, 0, 1, 10 / 256),
-    (1, 0, 1, 128 / 256),
+    (0, 0, 1, 2 / 256),
+    (0.8, 0, 1, 0.1),
+    (1, 0, 1, 1),
 ]
 
 
@@ -41,6 +41,9 @@ cam_w = 32
 cam_h = 24
 
 
+wled_ip = "172.20.10.2"  # can sometimes be 4.3.2.1
+
+
 def paint(col_mat: list[list[str]]) -> None:
     for x, y in to_pop[::-1]:
         col_mat[y].pop(x)
@@ -49,7 +52,7 @@ def paint(col_mat: list[list[str]]) -> None:
     for chunk_start in range(0, nb_leds, chunk_size):
         col_chunk = col_arr[chunk_start : chunk_start + chunk_size]
         response = requests.post(
-            "http://4.3.2.1/json",
+            f"http://{wled_ip}/json",
             headers={"Content-Type": "application/json"},
             data=json.dumps({"bri": 255, "seg": {"i": [chunk_start] + col_chunk}}),
         )
@@ -197,16 +200,6 @@ mlx = adafruit_mlx90640.MLX90640(i2c)
 print("MLX addr detected on I2C", [hex(i) for i in mlx.serial_number])
 mlx.refresh_rate = adafruit_mlx90640.RefreshRate.REFRESH_16_HZ
 frame = [0] * 768
-
-# wifi setup (try until connexion ok)
-while True:
-    print("Attempting HTTP connection to WLED on ESP32...")
-    try:
-        requests.get("http://4.3.2.1/json")
-        break
-    except:
-        continue
-print("HTTP connection successful")
 
 while True:
     try:
