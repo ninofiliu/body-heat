@@ -30,7 +30,9 @@ def paint(col_mat: list[list[str]]) -> None:
         requests.post(
             "http://172.20.10.2/json",
             headers={"Content-Type": "application/json"},
-            data=json.dumps({"bri": 255, "seg": {"i": [chunk_start] + col_chunk}}),
+            data=json.dumps(
+                {"bri": 255, "seg": {"i": [chunk_start] + col_chunk}, "live": True}
+            ),
         )
 
 
