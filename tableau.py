@@ -6,29 +6,28 @@ import adafruit_mlx90640
 import tpm2
 
 
-NUM_LEDS = 678  # Number of LEDs to control
-SERIAL_PORT = "/dev/ttyUSB0"  # Replace with your ESP32's serial port
-BAUDRATE = 115200  # Match this with WLED's baud rate
-
+nb_leds = 678  # Number of LEDs to control
+serial_port = "/dev/ttyAMA0"  # Replace with your ESP32's serial port
+baudrate = 115200  # Match this with WLED's baud rate
+downsampling = 8
 
 heat_min = 20
 heat_max = 30
 ramp = [
-    # heatmap
-    # (0.0, 0.66, 1, 5 / 256),
-    # (0.5, 0.33, 1, 10 / 256),
-    # (1, 0, 1, 128 / 256),
+    # blue white gradient
+    (0, 0.66, 1, 0 / 256),
+    (0.5, 0.66, 1, 16 / 256),
+    (0.8, 0.66, 1, 64 / 256),
+    (1, 0.66, 0, 1),
     # red gradient
-    (0, 0, 1, 3 / 256),
-    (0.5, 0, 1, 10 / 256),
-    (1, 0, 1, 1),
+    # (0, 0, 1, 0 / 256),
+    # (0.8, 0, 1, 16 / 256),
+    # (1, 0, 1, 1),
 ]
 
 
 screen_w = 43
 screen_h = 16
-http_chunk_size = 256
-nb_leds = 678
 to_pop = [
     (0, 0),
     (42, 0),
@@ -175,9 +174,9 @@ def hsv_to_rgb(hsv: tuple[float, float, float]) -> tuple[int, int, int]:
         # raise ValueError("Hue value out of range")
 
     # Convert to 0-255 range
-    r = int(r * 255)
-    g = int(g * 255)
-    b = int(b * 255)
+    r = max(0, min(255, int(r * 255))) // downsampling * downsampling
+    g = max(0, min(255, int(g * 255))) // downsampling * downsampling
+    b = max(0, min(255, int(b * 255))) // downsampling * downsampling
 
     return r, g, b
 
@@ -201,24 +200,23 @@ mlx.refresh_rate = adafruit_mlx90640.RefreshRate.REFRESH_16_HZ
 frame = [0] * 768
 
 
-with serial.Serial(SERIAL_PORT, BAUDRATE) as ser:
+with serial.Serial(serial_port, baudrate) as ser:
     while True:
+        t0 = time.time()
         try:
-            t0 = time.time()
-
             mlx.getFrame(frame)
-            cam_mat = [
-                [frame[cam_w * y + x] for y in range(cam_h)] for x in range(cam_w)
-            ][::-1]
-            cam_mat_resized = resize(cam_mat, screen_w, screen_h)
-            col_mat = [
-                [heat_to_color_rgb(cam_mat_resized[y][x]) for x in range(screen_w)]
-                for y in range(screen_h)
-            ]
-            paint_tpm2(col_mat, ser)
-
-            tf = time.time() - t0
-            print(f"{1/tf:.2f}fps ({int(1000*tf)}ms)")
         except Exception as e:
             print("Ignoring", e)
-            continue
+        cam_mat = [[frame[cam_w * y + x] for y in range(cam_h)] for x in range(cam_w)][
+            ::-1
+        ]
+        cam_mat_resized = resize(cam_mat, screen_w, screen_h)
+        col_mat = [
+            [heat_to_color_rgb(cam_mat_resized[y][x]) for x in range(screen_w)]
+            for y in range(screen_h)
+        ]
+        paint_tpm2(col_mat, ser)
+        print("read", ser.read_all())
+
+        tf = time.time() - t0
+        print(f"{1/tf:.2f}fps ({int(1000*tf)}ms)")

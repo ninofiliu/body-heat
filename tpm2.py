@@ -1,10 +1,11 @@
 import serial
 import time
+import random
 
 # Configuration
 NUM_LEDS = 678  # Number of LEDs to control
-SERIAL_PORT = "/dev/ttyUSB0"  # Replace with your ESP32's serial port
-BAUDRATE = 460800  # Match this with WLED's baud rate
+SERIAL_PORT = "/dev/ttyAMA0"  # Replace with your ESP32's serial port
+BAUDRATE = 115200  # Match this with WLED's baud rate
 
 
 def create_tpm2_packet(data: list[tuple[int, int, int]]):
@@ -36,8 +37,17 @@ if __name__ == "__main__":
         for i in range(NUM_LEDS):
             t0 = time.time()
             tpm2_packet = create_tpm2_packet(
-                [(1, 1, 1) if j < i else (10, 10, 10) for j in range(NUM_LEDS)]
+                # [(1, 1, 1) if j < i else (10, 10, 10) for j in range(NUM_LEDS)]
+                [
+                    (
+                        random.randrange(0, 255) // 16 * 16,
+                        random.randrange(0, 255) // 16 * 16,
+                        random.randrange(0, 255) // 16 * 16,
+                    )
+                    for j in range(NUM_LEDS)
+                ]
             )
             ser.write(tpm2_packet)
+            print("read", ser.read_all())
             tf = time.time() - t0
-            print(tf, 1 / tf)
+            print("perf", tf, 1 / tf)
