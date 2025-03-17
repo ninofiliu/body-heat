@@ -6,9 +6,9 @@ import adafruit_mlx90640
 import tpm2
 
 
-nb_leds = 678  # Number of LEDs to control
-serial_port = "/dev/ttyAMA0"  # Replace with your ESP32's serial port
-baudrate = 115200  # Match this with WLED's baud rate
+nb_leds = 678
+serial_port = "/dev/ttyAMA0"  # or /dev/ttyUSB0
+baudrate = 115200
 downsampling = 8
 
 heat_min = 20
