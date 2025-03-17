@@ -48,7 +48,9 @@ journalctl -u body-heat.service -f
 ```
 
 # Pinout
-        
+
+## Strip
+
 - pi.gnd cam.gnd(black)
 - pi.5v cam.vin(red)
 - pi.gpio02 cam.sda(blue)
@@ -63,6 +65,26 @@ journalctl -u body-heat.service -f
 - supply.v- pixel.gnd(white)
 - supply.v+ pixel.vin(red)
 - supply.v- diod supply.v+
+
+## Tableau
+
+Power
+
+- GND: pi5.gnd / esp32.gnd / shifter.gnd / led.gnd / cam.gnd
+- 5V: pi5.5v / shifter.vb
+- 5V psu: psu5.5v / esp32.5v
+- 3V: pi5.3v / cam.vin(red) / shifter.va
+
+Logic
+
+- pi5.rx (gpio14,pin18) / esp32.tx0
+- pi5.tx (gpio15,pin10) / esp32.rx0
+- esp32.d16 / shifter.a1; shifter.b1 - r65ohms - led.do
+- esp32.d23 / shifter.a2; shifter.b2 - r65ohms - led.bo
+- shifter.va / shifter.oe
+- cam.3v(red) / pi5.3v (pin1)
+- cam.sda(blue) / pi5.gpio2(pin3)
+- cam.scl(yellow) / pi5.gpio4(pin5)
 
 # SSH
 
