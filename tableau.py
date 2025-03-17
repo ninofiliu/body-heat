@@ -3,26 +3,24 @@ import time
 import board
 import busio
 import adafruit_mlx90640
-import requests
-import json
 import tpm2
 
 
 NUM_LEDS = 678  # Number of LEDs to control
 SERIAL_PORT = "/dev/ttyUSB0"  # Replace with your ESP32's serial port
-BAUDRATE = 460800  # Match this with WLED's baud rate
+BAUDRATE = 115200  # Match this with WLED's baud rate
 
 
-heat_min = 25
-heat_max = 33
+heat_min = 20
+heat_max = 30
 ramp = [
     # heatmap
     # (0.0, 0.66, 1, 5 / 256),
     # (0.5, 0.33, 1, 10 / 256),
     # (1, 0, 1, 128 / 256),
     # red gradient
-    (0, 0, 1, 2 / 256),
-    (0.8, 0, 1, 0.1),
+    (0, 0, 1, 3 / 256),
+    (0.5, 0, 1, 10 / 256),
     (1, 0, 1, 1),
 ]
 
@@ -46,24 +44,6 @@ to_pop = [
 
 cam_w = 32
 cam_h = 24
-
-
-wled_ip = "172.20.10.2"  # can sometimes be 4.3.2.1
-
-
-def paint_http(col_mat: list[list[str]]) -> None:
-    for x, y in to_pop[::-1]:
-        col_mat[y].pop(x)
-    col_rev = [col_mat[i] if i % 2 == 0 else col_mat[i][::-1] for i in range(screen_h)]
-    col_arr = [col for line in col_rev for col in line]
-    for chunk_start in range(0, nb_leds, http_chunk_size):
-        col_chunk = col_arr[chunk_start : chunk_start + http_chunk_size]
-        response = requests.post(
-            f"http://{wled_ip}/json",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps({"bri": 255, "seg": {"i": [chunk_start] + col_chunk}}),
-        )
-        print(response.text)
 
 
 def paint_tpm2(col_mat: list[list[tuple[int, int, int]]], ser: serial.Serial):
