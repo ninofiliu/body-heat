@@ -111,5 +111,5 @@ setup from ssh'd pi:
 
 ```sh
 # install deps
-sudo pip3 install --break-system-packages Adafruit-Blinka Adafruit-Blinka-Raspberry-Pi5-Neopixel
+pip3 install --break-system-packages adafruit-blinka adafruit-circuitpython-mlx90640
 ```

@@ -34,15 +34,15 @@ def create_tpm2_packet(data: list[tuple[int, int, int]]):
 
 if __name__ == "__main__":
     with serial.Serial(SERIAL_PORT, BAUDRATE) as ser:
-        for i in range(NUM_LEDS):
+        while True:
             t0 = time.time()
             tpm2_packet = create_tpm2_packet(
                 # [(1, 1, 1) if j < i else (10, 10, 10) for j in range(NUM_LEDS)]
                 [
                     (
-                        random.randrange(0, 255) // 16 * 16,
-                        random.randrange(0, 255) // 16 * 16,
-                        random.randrange(0, 255) // 16 * 16,
+                        random.randrange(0, 255) // 8 * 8,
+                        random.randrange(0, 255) // 8 * 8,
+                        random.randrange(0, 255) // 8 * 8,
                     )
                     for j in range(NUM_LEDS)
                 ]
