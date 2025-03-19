@@ -8,20 +8,20 @@ import tpm2
 
 nb_leds = 678
 serial_port = "/dev/ttyAMA0"  # or /dev/ttyUSB0
-baudrate = 115200*2
-downsampling = 4
+baudrate = 115200
+downsampling = 8
 
 heat_min = 15
 heat_max = 28
 ramp = [
     # blue white gradient
-    (0, 0.66, 1, 4 / 256),
-    (0.5, 0.66, 1, 16 / 256),
-    (1, 0.66, 0, 128 / 256),
+    # (0, 0.66, 1, 4 / 256),
+    # (0.5, 0.66, 1, 16 / 256),
+    # (1, 0.66, 0, 128 / 256),
     # red gradient
-    # (0, 0, 1, 0 / 256),
-    # (0.8, 0, 1, 16 / 256),
-    # (1, 0, 1, 1),
+    (0, 0, 1, 1/32),
+    (0.7, 0, 1, 5/32),
+    (1, 0, 1, 32/32),
 ]
 
 
@@ -202,7 +202,7 @@ frame = [0] * 768
 with serial.Serial(serial_port, baudrate) as ser:
     print(f"Serial connexion to {serial_port} at {baudrate}")
     while True:
-        # t0 = time.time()
+        t0 = time.time()
         try:
             mlx.getFrame(frame)
         except Exception as e:
@@ -216,9 +216,6 @@ with serial.Serial(serial_port, baudrate) as ser:
             for y in range(screen_h)
         ]
         paint_tpm2(col_mat, ser)
-        read = ser.read_all()
-        if len(read):
-            print("Serial read:", ser.read_all())
 
-        # tf = time.time() - t0
-        # print(f"{1/tf:.2f}fps ({int(1000*tf)}ms)")
+        tf = time.time() - t0
+        print(f"tmin {min(frame):.2f}, tmax {max(frame):.2f}, {1/tf:.2f}fps, serial {ser.read_all()}")

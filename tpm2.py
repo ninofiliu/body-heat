@@ -5,7 +5,7 @@ import random
 # Configuration
 NUM_LEDS = 678  # Number of LEDs to control
 SERIAL_PORT = "/dev/ttyAMA0"  # Replace with your ESP32's serial port
-BAUDRATE = 115200  # Match this with WLED's baud rate
+BAUDRATE = 115200*2  # Match this with WLED's baud rate
 
 
 def create_tpm2_packet(data: list[tuple[int, int, int]]):
