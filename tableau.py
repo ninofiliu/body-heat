@@ -1,3 +1,4 @@
+import random
 import serial
 import time
 import board
@@ -11,7 +12,7 @@ serial_port = "/dev/ttyAMA0"  # or /dev/ttyUSB0
 baudrate = 115200
 downsampling = 8
 
-heat_min = 15
+heat_min = 20
 heat_max = 28
 ramp = [
     # blue white gradient
@@ -20,9 +21,11 @@ ramp = [
     # (1, 0.66, 0, 128 / 256),
     # red gradient
     (0, 0, 1, 1/32),
-    (0.7, 0, 1, 5/32),
+    (0.8, 0, 1, 5/32),
     (1, 0, 1, 32/32),
 ]
+
+noise = 5
 
 
 screen_w = 43
@@ -207,7 +210,7 @@ with serial.Serial(serial_port, baudrate) as ser:
             mlx.getFrame(frame)
         except Exception as e:
             print("Cam error:", e)
-        cam_mat = [[frame[cam_w * y + x] for y in range(cam_h)] for x in range(cam_w)][
+        cam_mat = [[frame[cam_w * y + x]+random.randrange(0,noise) for y in range(cam_h)] for x in range(cam_w)][
             ::-1
         ]
         cam_mat_resized = resize(cam_mat, screen_w, screen_h)
