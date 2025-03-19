@@ -8,17 +8,16 @@ import tpm2
 
 nb_leds = 678
 serial_port = "/dev/ttyAMA0"  # or /dev/ttyUSB0
-baudrate = 115200
-downsampling = 8
+baudrate = 115200*2
+downsampling = 4
 
-heat_min = 20
-heat_max = 30
+heat_min = 15
+heat_max = 28
 ramp = [
     # blue white gradient
-    (0, 0.66, 1, 0 / 256),
-    (0.5, 0.66, 1, 16 / 256),
-    (0.8, 0.66, 1, 64 / 256),
-    (1, 0.66, 0.5, 64 / 256),
+    (0, 0.66, 1, 4 / 256),
+    (0.5, 0.66, .8, 28 / 256),
+    (1, 0.66, 0, 128 / 256),
     # red gradient
     # (0, 0, 1, 0 / 256),
     # (0.8, 0, 1, 16 / 256),
@@ -174,9 +173,9 @@ def hsv_to_rgb(hsv: tuple[float, float, float]) -> tuple[int, int, int]:
         # raise ValueError("Hue value out of range")
 
     # Convert to 0-255 range
-    r = max(0, min(255, int(r * 255))) // downsampling * downsampling
-    g = max(0, min(255, int(g * 255))) // downsampling * downsampling
-    b = max(0, min(255, int(b * 255))) // downsampling * downsampling
+    r = max(0, min(255, int(r * 256))) // downsampling * downsampling
+    g = max(0, min(255, int(g * 256))) // downsampling * downsampling
+    b = max(0, min(255, int(b * 256))) // downsampling * downsampling
 
     return r, g, b
 
